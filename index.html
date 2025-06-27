@@ -9,7 +9,7 @@
     html, body { height: 100%; margin: 0; font-family:'Courier New', Courier, monospace; }
     #map { width: 100%; height: 100vh; }
     .leaflet-tile-pane { filter: grayscale(100%) contrast(1.2) brightness(0.9); opacity: 0.85; }
-    .color-filters { position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); z-index: 1000; max-width: 220px; max-height: calc(100vh - 100px); border: 1px solid rgba(255,255,255,0.2); display: none; overflow-y: auto; }
+    .color-filters { position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); z-index: 1000; width: 300px; height: 300px; border: 1px solid rgba(255,255,255,0.2); display: none; overflow-y: auto; }
     .color-filters.show { display: block; animation: fadeIn 0.5s ease-out; }
     .color-filters.shifted { right: 320px; }
     .color-filters::-webkit-scrollbar { width: 4px; }
@@ -22,32 +22,72 @@
     .filter-label { font-size: 13px; color: #34495e; flex: 1; font-weight: 400; }
     .filter-count { font-size: 11px; color: #7f8c8d; background: rgba(255,255,255,0.6); padding: 3px 8px; border-radius: 12px; font-weight: 500; }
     .filter-item.disabled { opacity: 0.5; }
-    .popup-image { max-width: 300px; display: block; margin-bottom: 10px; border-radius: 10px; }
-    .popup-content { text-align: left; }
+    .popup-image { width: 280px; height: 180px; object-fit: cover; display: block; margin: 20px 0 15px 0px; border-radius: 16px; }
+    .popup-content { text-align: left; width: 300px; padding: 0 10px; }
+    .popup-title { font-size: 16px; font-weight: 500; color: #2c3e50; margin: 0 0 5px 0; font-family: 'Courier New', Courier, monospace; }
+    .popup-number { color: #7f8c8d; font-size: 16px; font-weight: 300; font-family: 'Courier New', Courier, monospace; }
+    .popup-description { font-size: 12px; color: #7f8c8d; margin: 5px 0 0 0; font-style: italic; font-family: 'Courier New', Courier, monospace; }
     .filter-controls { margin-bottom: 16px; display: flex; gap: 8px; }
     .control-btn { padding: 8px 12px; font-size: 12px; border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; flex: 1; text-align: center; color: #34495e; font-weight: 400; transition: all 0.3s ease; }
     .control-btn:hover { background: rgba(255,255,255,0.6); }
     .exit-btn { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.8); border: 1px solid rgba(0,0,0,0.2); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; color: #666; transition: all 0.3s ease; }
     .exit-btn:hover { background: rgba(255,255,255,1); color: #333; transform: scale(1.1); }
-    .love-message { position: absolute; bottom: 20px; left: 20px; background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); z-index: 1000; max-width: 280px; border: 1px solid rgba(255,255,255,0.2); display: none; }
+    .love-message { position: absolute; bottom: 20px; left: 20px; background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); z-index: 1000; width: 300px; height: 300px; border: 1px solid rgba(255,255,255,0.2); display: none; box-sizing: border-box; }
     .love-message.show { display: block; animation: fadeIn 0.5s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     .love-message p { margin: 8px 0; font-size: 11.2px; color: #34495e; line-height: 1.6; font-family: 'Courier New', Courier, monospace; font-weight: 300; }
-    .love-toggle { position: absolute; bottom: 20px; left: 10px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 12px 16px; cursor: pointer; font-size: 14px; color: #34495e; font-weight: 400; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+    .love-toggle { position: absolute; bottom: 20px; left: 10px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; width: 40px; height: 40px; cursor: pointer; font-size: 18px; color: #34495e; font-weight: 400; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
     .love-toggle:hover { background: rgba(255,255,255,1); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
     .love-toggle.shifted { left: 360px; }
-    .flowers-toggle { position: absolute; bottom: 75px; left: 10px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 12px 16px; cursor: pointer; font-size: 14px; color: #34495e; font-weight: 400; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+    .flowers-toggle { position: absolute; bottom: 75px; left: 10px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; width: 40px; height: 40px; cursor: pointer; font-size: 18px; color: #34495e; font-weight: 400; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
     .flowers-toggle:hover { background: rgba(255,255,255,1); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
     .flowers-toggle.shifted { left: 360px; }
-    .info-toggle { position: absolute; bottom: 130px; left: 10px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 12px 16px; cursor: pointer; font-size: 14px; color: #34495e; font-weight: 400; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+    .info-toggle { position: absolute; bottom: 130px; left: 10px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; width: 40px; height: 40px; cursor: pointer; font-size: 18px; color: #34495e; font-weight: 400; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
     .info-toggle:hover { background: rgba(255,255,255,1); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
     .info-toggle.shifted { left: 360px; }
-    .info-message { position: absolute; bottom: 20px; left: 20px; background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); z-index: 1000; max-width: 280px; border: 1px solid rgba(255,255,255,0.2); display: none; }
+    .info-message { position: absolute; bottom: 20px; left: 20px; background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); z-index: 1000; width: 300px; height: 300px; border: 1px solid rgba(255,255,255,0.2); display: none; box-sizing: border-box; }
     .info-message.show { display: block; animation: fadeIn 0.5s ease-out; }
     .info-message p { margin: 8px 0; font-size: 14px; color: #34495e; line-height: 1.6; font-weight: 300; }
     .info-message .definition { font-family: 'Courier New', Courier, monospace; font-size: 12px; margin: 12px 0; }
     .info-message a { color: #34495e; text-decoration: none; font-weight: 500; font-family: 'Courier New', Courier, monospace; font-size: 11.2px; }
     .info-message a:hover { text-decoration: underline; }
+    
+    /* Custom popup styling */
+    .leaflet-popup-content-wrapper {
+      border-radius: 16px;
+      padding: 15px;
+      position: relative;
+    }
+    .leaflet-popup-content {
+      margin: 0;
+      width: 300px !important;
+      padding: 0;
+    }
+    .leaflet-popup-close-button {
+      position: absolute;
+      top: 12px !important;
+      right: 8px !important;
+      width: 8px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid rgba(0,0,0,0.2);
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      line-height: 1;
+      z-index: 1001;
+    }
+    .leaflet-popup-close-button:hover {
+      background: rgba(255,255,255,1);
+      color: #333;
+      transform: scale(1.1);
+    }
   </style>
 </head>
 <body>
@@ -57,7 +97,7 @@
   <div class="info-toggle" onclick="toggleInfoMessage()">ℹ️</div>
   <div class="love-message" id="love-message">
     <div class="exit-btn" onclick="toggleLoveMessage()">×</div>
-    <p>Dearest Nubia</p><br>
+    <p>Dearest Nubia,</p><br>
     <p>Twenty wonderful years</p>
     <p>Twenty wonderful flowers</p><br>
     <p>Happy Birthday you!</p><br>
@@ -93,6 +133,7 @@
     }).addTo(map);
     const colors = ['#fa337f', '#ffe23a', '#cc65ff', '#e74c3c', '#95a5a6', '#ff335b', '#fdfdfd', '#e5c6ef', '#ff0000', '#1abc9c', '#f1c40f', '#ff9c00', '#e91e63', '#d598b5', '#ffffff', '#fefefe', '#2f624e', '#fcce00', '#ffd100', '#ac8fff'];
     const flowerNames = ['Red Horse Chestnut', 'Yellow Rose', 'Campanula Bell', 'Red Valerian', 'Unidentified Flower', 'Baby Sage', 'Cerastium Tomentosum', 'Left Lavender', 'Barbican Poppy', 'Barbican Scabious', 'Yellow Buttercups', 'Hollywood Flowers', 'Graham\'s Flowers', 'Bear\'s Breeches', 'Calla Lily by the Roadside', 'Calla Lily by the Thames', 'Campanula Bell', 'Leontodon Cripus', 'Innumerabilis', 'Second Scabious'];
+    const flowerNumbers = [12, 36, 118, 137, 139, 162, 183, 253, 274, 278, 293, 326, 349, 364, 366, 368, 376, 399, 406, 428];
     const locations = [
       { name: "51°33'52.1\"N 0°2'47.0\"W", lat: 51.56447, lon: -0.04639 },
       { name: "51°33'7.962\"N 0°2'54.72\"W", lat: 51.552212, lon: -0.048533 },
@@ -156,11 +197,12 @@
       if (!colorGroups[color]) { colorGroups[color] = []; }
       colorGroups[color].push(marker);
       const item = items[i];
+      const flowerNumber = flowerNumbers[i];
       const popupContent = `
         <div class="popup-content">
           <img src="${item.src}" alt="${item.title}" class="popup-image" />
-          <strong>${item.title}</strong><br/>
-          <em>${item.description}</em>
+          <div class="popup-title">${item.title} <span class="popup-number">${flowerNumber}</span></div>
+          <div class="popup-description">${item.description}</div>
         </div>
       `;
       marker.bindPopup(popupContent);
