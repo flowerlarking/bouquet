@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flower Larking</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html, body { height: 100%; margin: 0; font-family:'Courier New', Courier, monospace; }
+    #map { width: 100%; height: 100vh; }
+    .leaflet-tile-pane { filter: grayscale(100%) contrast(1.2) brightness(0.9); opacity: 0.85; }
+    .color-filters { position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); z-index: 1000; max-width: 220px; max-height: calc(100vh - 100px); border: 1px solid rgba(255,255,255,0.2); display: none; overflow-y: auto; }
+    .color-filters.show { display: block; animation: fadeIn 0.5s ease-out; }
+    .color-filters.shifted { right: 320px; }
+    .color-filters::-webkit-scrollbar { width: 4px; }
+    .color-filters::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 2px; }
+    .color-filters::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 2px; }
+    .color-filters h3 { margin: 0 0 16px 0; font-size: 18px; color: #2c3e50; font-weight: 300; letter-spacing: 0.5px; }
+    .filter-item { display: flex; align-items: center; margin-bottom: 12px; cursor: pointer; padding: 8px 12px; border-radius: 12px; transition: all 0.3s ease; background: rgba(255,255,255,0.3); }
+    .filter-item:hover { background: rgba(255,255,255,0.6); transform: translateX(2px); }
+    .color-dot { width: 16px; height: 16px; border-radius: 50%; margin-right: 12px; border: 2px solid rgba(255,255,255,0.8); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .filter-label { font-size: 13px; color: #34495e; flex: 1; font-weight: 400; }
+    .filter-count { font-size: 11px; color: #7f8c8d; background: rgba(255,255,255,0.6); padding: 3px 8px; border-radius: 12px; font-weight: 500; }
+    .filter-item.disabled { opacity: 0.5; }
+    .popup-image { max-width: 300px; display: block; margin-bottom: 10px; border-radius: 10px; }
+    .popup-content { text-align: left; }
+    .filter-controls { margin-bottom: 16px; display: flex; gap: 8px; }
+    .control-btn { padding: 8px 12px; font-size: 12px; border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; flex: 1; text-align: center; color: #34495e; font-weight: 400; transition: all 0.3s ease; }
+    .control-btn:hover { background: rgba(255,255,255,0.6); }
+    .exit-btn { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.8); border: 1px solid rgba(0,0,0,0.2); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; color: #666; transition: all 0.3s ease; }
+    .exit-btn:hover { background: rgba(255,255,255,1); color: #333; transform: scale(1.1); }
+    .love-message { position: absolute; bottom: 20px; left: 20px; background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); z-index: 1000; max-width: 280px; border: 1px solid rgba(255,255,255,0.2); display: none; }
+    .love-message.show { display: block; animation: fadeIn 0.5s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .love-message p { margin: 8px 0; font-size: 11.2px; color: #34495e; line-height: 1.6; font-family: 'Courier New', Courier, monospace; font-weight: 300; }
+    .love-toggle { position: absolute; bottom: 20px; left: 10px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 12px 16px; cursor: pointer; font-size: 14px; color: #34495e; font-weight: 400; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+    .love-toggle:hover { background: rgba(255,255,255,1); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+    .love-toggle.shifted { left: 360px; }
+    .flowers-toggle { position: absolute; bottom: 75px; left: 10px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 12px 16px; cursor: pointer; font-size: 14px; color: #34495e; font-weight: 400; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+    .flowers-toggle:hover { background: rgba(255,255,255,1); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+    .flowers-toggle.shifted { left: 360px; }
+    .info-toggle { position: absolute; bottom: 130px; left: 10px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 12px 16px; cursor: pointer; font-size: 14px; color: #34495e; font-weight: 400; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+    .info-toggle:hover { background: rgba(255,255,255,1); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+    .info-toggle.shifted { left: 360px; }
+    .info-message { position: absolute; bottom: 20px; left: 20px; background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); z-index: 1000; max-width: 280px; border: 1px solid rgba(255,255,255,0.2); display: none; }
+    .info-message.show { display: block; animation: fadeIn 0.5s ease-out; }
+    .info-message p { margin: 8px 0; font-size: 14px; color: #34495e; line-height: 1.6; font-weight: 300; }
+    .info-message .definition { font-family: 'Courier New', Courier, monospace; font-size: 12px; margin: 12px 0; }
+    .info-message a { color: #34495e; text-decoration: none; font-weight: 500; font-family: 'Courier New', Courier, monospace; font-size: 11.2px; }
+    .info-message a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="flowers-toggle" onclick="toggleFlowersList()">💐</div>
+  <div class="love-toggle" onclick="toggleLoveMessage()">✉️</div>
+  <div class="info-toggle" onclick="toggleInfoMessage()">ℹ️</div>
+  <div class="love-message" id="love-message">
+    <div class="exit-btn" onclick="toggleLoveMessage()">×</div>
+    <p>Dearest Nubia</p><br>
+    <p>Twenty wonderful years</p>
+    <p>Twenty wonderful flowers</p><br>
+    <p>Happy Birthday you!</p><br>
+    <p>Lots of love from Tom</p>
+  </div>
+  <div class="info-message" id="info-message">
+    <div class="exit-btn" onclick="toggleInfoMessage()">×</div>
+    <p class="definition">
+      flowerlark<br>
+      /ˈflaʊəlɑːk/<br><br>
+      a friend or lover who searches far and wide for flora of beauty
+    </p>
+    <p><a href="https://www.instagram.com/flowerlarking/" target="_blank">@flowerlarking</a></p>
+  </div>
+  <div class="color-filters">
+    <div class="exit-btn" onclick="toggleFlowersList()">×</div>
+    <h3>Flowers <span style="color: rgba(128, 128, 128, 0.6); font-weight: 300;">434</span></h3>
+    <div class="filter-controls">
+      <div class="control-btn" onclick="showAllColors()">Show All</div>
+      <div class="control-btn" onclick="hideAllColors()">Hide All</div>
+    </div>
+    <div id="color-filter-list"></div>
+  </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([51.49, -0.19], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+      attribution: 'Flower Larking | Love from Tom',
+      maxZoom: 19
+    }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19
+    }).addTo(map);
+    const colors = ['#fa337f', '#ffe23a', '#cc65ff', '#e74c3c', '#95a5a6', '#ff335b', '#fdfdfd', '#e5c6ef', '#ff0000', '#1abc9c', '#f1c40f', '#ff9c00', '#e91e63', '#d598b5', '#ffffff', '#fefefe', '#2f624e', '#fcce00', '#ffd100', '#ac8fff'];
+    const flowerNames = ['Red Horse Chestnut', 'Yellow Rose', 'Campanula Bell', 'Red Valerian', 'Unidentified Flower', 'Baby Sage', 'Cerastium Tomentosum', 'Left Lavender', 'Barbican Poppy', 'Barbican Scabious', 'Yellow Buttercups', 'Hollywood Flowers', 'Graham\'s Flowers', 'Bear\'s Breeches', 'Calla Lily by the Roadside', 'Calla Lily by the Thames', 'Campanula Bell', 'Leontodon Cripus', 'Innumerabilis', 'Second Scabious'];
+    const locations = [
+      { name: "51°33'52.1\"N 0°2'47.0\"W", lat: 51.56447, lon: -0.04639 },
+      { name: "51°33'7.962\"N 0°2'54.72\"W", lat: 51.552212, lon: -0.048533 },
+      { name: "51°33'32.538\"N 0°3'2.77\"W", lat: 51.559038, lon: -0.050769 },
+      { name: "51°33'15.27\"N 0°2'16.03\"W", lat: 51.554242, lon: -0.037786 },
+      { name: "51°33'39.222\"N 0°2'12.5\"W", lat: 51.560895, lon: -0.036806 },
+      { name: "52°15'9.342\"N 0°6'14.91\"E", lat: 52.252595, lon: 0.104142 },
+      { name: "52°14'47.34\"N 0°6'36.93\"E", lat: 52.246483, lon: 0.110258 },
+      { name: "51°33'15.612\"N 0°2'56.94\"W", lat: 51.554337, lon: -0.049150 },
+      { name: "51°31'13.98\"N 0°5'42.21\"W", lat: 51.520550, lon: -0.095058 },
+      { name: "51°31'16.398\"N 0°5'50.19\"W", lat: 51.521222, lon: -0.097275 },
+      { name: "51°32'15.102\"N 0°9'2.42\"W", lat: 51.537528, lon: -0.150672 },
+      { name: "51°29'6.432\"N 0°10'58.62\"W", lat: 51.48512, lon: -0.18295 },
+      { name: "51°29'37.848\"N 0°10'26.922\"W", lat: 51.493846, lon: -0.174700 },
+      { name: "51°33'8.568\"N 0°2'46.19\"W", lat: 51.552380, lon: -0.046164 },
+      { name: "51°30'36.468\"N 0°2'27.63\"W", lat: 51.510130, lon: -0.041009 },
+      { name: "51°30'35.4\"N 0°2'28.82\"W", lat: 51.509833, lon: -0.041339 },
+      { name: "51°30'37.848\"N 0°1'59.51\"W", lat: 51.510513, lon: -0.033197 },
+      { name: "51°33'11.268\"N 0°2'29.89\"W", lat: 51.553130, lon: -0.041636 },
+      { name: "51°33'16.452\"N 0°2'11.12\"W", lat: 51.554570, lon: -0.036422 },
+      { name: "51°33'37.518\"N 0°2'15.06\"W", lat: 51.560421, lon: -0.037517 }
+    ];
+    const items = [
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower12.png", title: "Flower Twelve", description: "Location 51°33'52.1\"N 0°2'47.0\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower36.png", title: "Flower Thirty Six", description: "Location 51°33'7.962\"N 0°2'54.72\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower118.png", title: "Flower One Hundred & Eighteen", description: "Location 51°33'32.538\"N 0°3'2.77\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower137.png", title: "Flower One Hundred & Thirty Seven", description: "Location 51°33'15.27\"N 0°2'16.03\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower139.png", title: "Flower One Hundred & Thirty Nine", description: "Location 51°33'39.222\"N 0°2'12.5\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower162.png", title: "Flower One Hundred & Sixty Two", description: "Location 52°15'9.342\"N 0°6'14.91\"E" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower183.png", title: "Flower One Hundred & Eighty Three", description: "Location 52°14'47.34\"N 0°6'36.93\"E" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower253.png", title: "Flower Two Hundred & Fifty Three", description: "Location 51°33'15.612\"N 0°2'56.94\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower274.png", title: "Flower Two Hundred & Seventy Four", description: "Location 51°31'13.98\"N 0°5'42.21\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower278.png", title: "Flower Two Hundred & Seventy Eight", description: "Location 51°31'16.398\"N 0°5'50.19\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower293.png", title: "Flower Two Hundred & Ninety Three", description: "Location 51°32'15.102\"N 0°9'2.42\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower326.png", title: "Flower Three Hundred & Twenty Six", description: "Location 51°29'6.432\"N 0°10'58.62\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower349.png", title: "Flower Three Hundred & Forty Nine", description: "Location 51°29'37.848\"N 0°10'26.922\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower364.png", title: "Flower Three Hundred & Sixty Four", description: "Location 51°33'8.568\"N 0°2'46.19\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower366.png", title: "Flower Three Hundred & Sixty Six", description: "Location 51°30'36.468\"N 0°2'27.63\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower368.png", title: "Flower Three Hundred & Sixty Eight", description: "Location 51°30'35.4\"N 0°2'28.82\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower376.png", title: "Flower Three Hundred & Seventy Six", description: "Location 51°30'37.848\"N 0°1'59.51\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower399.png", title: "Flower Three Hundred & Ninety Nine", description: "Location 51°33'11.268\"N 0°2'29.89\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower406.png", title: "Flower Four Hundred & Six", description: "Location 51°33'16.452\"N 0°2'11.12\"W" },
+      { src: "https://raw.githubusercontent.com/flowerlarking/bouquet/main/flower428.png", title: "Flower Four Hundred & Twenty Eight", description: "Location 51°33'37.518\"N 0°2'15.06\"W" }
+    ];
+    const markers = [];
+    const colorGroups = {};
+    locations.forEach((loc, i) => {
+      const color = colors[i];
+      const marker = L.circleMarker([loc.lat, loc.lon], {
+        radius: 8, fillColor: color, color: '#ffffff', weight: 1, opacity: 0.9, fillOpacity: 0.85
+      }).addTo(map);
+      marker.on('mouseover', function() {
+        this.setStyle({ radius: 12, weight: 4, fillOpacity: 1 });
+      });
+      marker.on('mouseout', function() {
+        this.setStyle({ radius: 8, weight: 3, fillOpacity: 0.85 });
+      });
+      marker.colorGroup = color;
+      marker.flowerIndex = i;
+      markers.push(marker);
+      if (!colorGroups[color]) { colorGroups[color] = []; }
+      colorGroups[color].push(marker);
+      const item = items[i];
+      const popupContent = `
+        <div class="popup-content">
+          <img src="${item.src}" alt="${item.title}" class="popup-image" />
+          <strong>${item.title}</strong><br/>
+          <em>${item.description}</em>
+        </div>
+      `;
+      marker.bindPopup(popupContent);
+    });
+    function createColorFilters() {
+      const filterList = document.getElementById('color-filter-list');
+      Object.keys(colorGroups).forEach((color, index) => {
+        const filterItem = document.createElement('div');
+        filterItem.className = 'filter-item';
+        filterItem.onclick = () => openFlowerPopup(color);
+        const flowerName = flowerNames[colors.indexOf(color)];
+        filterItem.innerHTML = `
+          <div class="color-dot" style="background-color: ${color}"></div>
+          <div class="filter-label">${flowerName}</div>
+          <div class="filter-count">${colorGroups[color].length}</div>
+        `;
+        filterList.appendChild(filterItem);
+      });
+    }
+    function openFlowerPopup(color) {
+      const group = colorGroups[color];
+      const marker = group[0];
+      map.setView([marker.getLatLng().lat, marker.getLatLng().lng], map.getZoom());
+      marker.openPopup();
+    }
+    function toggleColorGroup(color) {
+      const group = colorGroups[color];
+      const filterItem = document.querySelector(`[onclick="toggleColorGroup('${color}')"]`);
+      const isVisible = map.hasLayer(group[0]);
+      group.forEach(marker => {
+        if (isVisible) { map.removeLayer(marker); } else { map.addLayer(marker); }
+      });
+      filterItem.classList.toggle('disabled', isVisible);
+    }
+    function showAllColors() {
+      markers.forEach(marker => { if (!map.hasLayer(marker)) { map.addLayer(marker); } });
+      document.querySelectorAll('.filter-item').forEach(item => { item.classList.remove('disabled'); });
+    }
+    function hideAllColors() {
+      markers.forEach(marker => { if (map.hasLayer(marker)) { map.removeLayer(marker); } });
+      document.querySelectorAll('.filter-item').forEach(item => { item.classList.add('disabled'); });
+    }
+    function toggleLoveMessage() {
+      const messageBox = document.getElementById('love-message');
+      const isShowing = messageBox.classList.contains('show');
+      messageBox.classList.toggle('show');
+      const flowersToggle = document.querySelector('.flowers-toggle');
+      const loveToggle = document.querySelector('.love-toggle');
+      const infoToggle = document.querySelector('.info-toggle');
+      if (!isShowing) {
+        flowersToggle.classList.add('shifted');
+        loveToggle.classList.add('shifted');
+        infoToggle.classList.add('shifted');
+      } else {
+        flowersToggle.classList.remove('shifted');
+        loveToggle.classList.remove('shifted');
+        infoToggle.classList.remove('shifted');
+      }
+    }
+    function toggleInfoMessage() {
+      const infoBox = document.getElementById('info-message');
+      const isShowing = infoBox.classList.contains('show');
+      infoBox.classList.toggle('show');
+      const flowersToggle = document.querySelector('.flowers-toggle');
+      const loveToggle = document.querySelector('.love-toggle');
+      const infoToggle = document.querySelector('.info-toggle');
+      if (!isShowing) {
+        flowersToggle.classList.add('shifted');
+        loveToggle.classList.add('shifted');
+        infoToggle.classList.add('shifted');
+      } else {
+        flowersToggle.classList.remove('shifted');
+        loveToggle.classList.remove('shifted');
+        infoToggle.classList.remove('shifted');
+      }
+    }
+    function toggleFlowersList() {
+      const flowersList = document.querySelector('.color-filters');
+      const isShowing = flowersList.classList.contains('show');
+      flowersList.classList.toggle('show');
+      const messageBox = document.getElementById('love-message');
+      const infoBox = document.getElementById('info-message');
+      if ((messageBox.classList.contains('show') || infoBox.classList.contains('show')) && !isShowing) {
+        flowersList.classList.add('shifted');
+      } else {
+        flowersList.classList.remove('shifted');
+      }
+    }
+    createColorFilters();
+  </script>
+</body>
+</html>
